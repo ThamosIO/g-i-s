@@ -1,16 +1,16 @@
-var request = require('request');
-var cheerio = require('cheerio');
-var queryString = require('querystring');
-var flatten = require('lodash.flatten');
+const fetch = require('node-fetch');
+const cheerio = require('cheerio');
+const queryString = require('querystring');
+const flatten = require('lodash.flatten');
 
-var baseURL = 'http://images.google.com/search?';
+const baseURL = 'http://images.google.com/search?';
 
-var imageFileExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.svg'];
+const imageFileExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.svg'];
 
-function gis(opts, done) {
-  var searchTerm;
-  var queryStringAddition;
-  var filterOutDomains = ['gstatic.com'];
+async function gis(opts, done) {
+  let searchTerm;
+  let queryStringAddition;
+  let filterOutDomains = ['gstatic.com'];
 
   if (typeof opts === 'string') {
     searchTerm = opts;
@@ -20,11 +20,11 @@ function gis(opts, done) {
     filterOutDomains = filterOutDomains.concat(opts.filterOutDomains);
   }
 
-  var url =
+  let url =
     baseURL +
     queryString.stringify({
       tbm: 'isch',
-      q: searchTerm
+      q: searchTerm,
     });
 
   if (filterOutDomains) {
@@ -36,26 +36,28 @@ function gis(opts, done) {
   if (queryStringAddition) {
     url += queryStringAddition;
   }
-  var reqOpts = {
-    url: url,
-    headers: {
-      'User-Agent':
-        'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/61.0.3163.100 Safari/537.36'
-    }
+
+  const headers = {
+    'User-Agent':
+      'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/61.0.3163.100 Safari/537.36',
   };
+  let res;
+  let results;
 
-  // console.log(reqOpts.url);
-  request(reqOpts, parseGISResponse);
+  try {
+    res = await fetch(url, { headers });
+    results = await res.text();
+  } catch (e) {
+    return { error: e };
+  }
 
-  function parseGISResponse(error, response, body) {
-    if (error) {
-      done(error);
-      return;
-    }
-    var $ = cheerio.load(body);
-    var scripts = $('script');
-    var scriptContents = [];
-    for (var i = 0; i < scripts.length; ++i) {
+  return parseGISResponse(results);
+
+  function parseGISResponse(images) {
+    const $ = cheerio.load(images);
+    const scripts = $('script');
+    const scriptContents = [];
+    for (let i = 0; i < scripts.length; ++i) {
       if (scripts[i].children.length > 0) {
         const content = scripts[i].children[0].data;
         if (containsAnyImageFileExtension(content)) {
@@ -64,18 +66,18 @@ function gis(opts, done) {
       }
     }
 
-    done(error, flatten(scriptContents.map(collectImageRefs)));
+    return flatten(scriptContents.map(collectImageRefs));
 
     function collectImageRefs(content) {
-      var refs = [];
-      var re = /\["(http.+?)",(\d+),(\d+)\]/g;
-      var result;
+      const refs = [];
+      const re = /\["(http.+?)",(\d+),(\d+)\]/g;
+      let result;
       while ((result = re.exec(content)) !== null) {
         if (result.length > 3) {
           let ref = {
             url: result[1],
             width: +result[2],
-            height: +result[3]
+            height: +result[3],
           };
           if (domainIsOK(ref.url)) {
             refs.push(ref);
@@ -104,7 +106,7 @@ function addSiteExcludePrefix(s) {
 }
 
 function containsAnyImageFileExtension(s) {
-  var lowercase = s.toLowerCase();
+  const lowercase = s.toLowerCase();
   return imageFileExtensions.some(containsImageFileExtension);
 
   function containsImageFileExtension(ext) {

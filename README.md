@@ -1,29 +1,20 @@
-g-i-s
-=====
+# g-i-s
 
 [![Build Status](https://travis-ci.org/jimkang/g-i-s.svg?branch=master)](https://travis-ci.org/jimkang/g-i-s)
 
 Another Google Image Search Node module. The nature of these things is that they eventually break as GIS changes, but this one works as of 2018-06-20.
 
-Installation
-------------
+## Installation
 
     npm install g-i-s
 
-Usage
------
+## Usage
 
-    var gis = require('g-i-s');
-    gis('cats', logResults);
+    const gis = require('g-i-s');
+    const { error, results } = await gis('cats');
 
-    function logResults(error, results) {
-      if (error) {
-        console.log(error);
-      }
-      else {
-        console.log(JSON.stringify(results, null, '  '));
-      }
-    }
+    console.log(error);
+    console.log(JSON.stringify(results, null, '  '));
 
 Output:
 
@@ -53,15 +44,15 @@ Output:
 
 If you want to pass additional stuff to tack onto the Google image search URL, pass an object containing `searchTerm` and `queryStringAddition`. e.g.
 
-    var opts = {
+    const opts = {
       searchTerm: 'cat',
       queryStringAddition: '&tbs=ic:trans'
     };
-    gis(opts, logResults);
+    const { results } = await gis(opts);
 
 You can also filter out results from specfied domains:
 
-    var opts = {
+    const opts = {
       searchTerm: 'cat',
       queryStringAddition: '&tbs=ic:trans',
       filterOutDomains: [
@@ -69,17 +60,15 @@ You can also filter out results from specfied domains:
         'deviantart.com'
       ]
     };
-    gis(opts, logResults);
+    const { results } = await gis(opts);
 
 Specifying `filterOutDomains` will both tell Google to not to include results that come from web pages on those domains and also filter image results that are hosted on those domains. (Sometimes an image is on an html page on a domain not included in your filters and has an img tag that loads from a domain that is included in your filters.)
 
-Tests
------
+## Tests
 
 Run tests with `make test`.
 
-License
--------
+## License
 
 The MIT License (MIT)
 

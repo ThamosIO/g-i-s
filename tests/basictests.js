@@ -7,28 +7,27 @@ var searchTopics = [
   'ківі',
   {
     searchTerm: 'sleep',
-    queryStringAddition: '&tbs=ic:trans'
+    queryStringAddition: '&tbs=ic:trans',
   },
   {
     searchTerm: 'pony',
     queryStringAddition: '&tbs=ic:trans',
-    filterOutDomains: ['deviantart.net', 'deviantart.com']
-  }
+    filterOutDomains: ['deviantart.net', 'deviantart.com'],
+  },
 ];
 
 searchTopics.forEach(runTest);
 
-function runTest(topic) {
-  test('Basic test', function basicTest(t) {
-    gis(topic, checkResults);
+async function runTest(topic) {
+  test('Basic test', async (t) => {
+    const lol = await gis(topic);
+    const { error = null, results = [] } = lol;
 
-    function checkResults(error, results) {
-      t.ok(!error, 'No error.');
-      t.ok(results.length > 0, 'There is at least one result.');
-      results.forEach(checkResult);
-      // console.log(JSON.stringify(results, null, '  '));
-      t.end();
-    }
+    t.ok(!error, 'No error.');
+    t.ok(results.length > 0, 'There is at least one result.');
+    results.forEach(checkResult);
+
+    t.end();
 
     function checkResult(result) {
       t.equal(typeof result, 'object', 'Result is an object.');
