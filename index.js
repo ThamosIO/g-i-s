@@ -51,7 +51,7 @@ async function gis(opts, done) {
     return { error: e };
   }
 
-  return parseGISResponse(results);
+  return { results: parseGISResponse(results) };
 
   function parseGISResponse(images) {
     const $ = cheerio.load(images);
@@ -76,8 +76,8 @@ async function gis(opts, done) {
         if (result.length > 3) {
           let ref = {
             url: result[1],
-            width: +result[2],
-            height: +result[3],
+            height: +result[2],
+            width: +result[3],
           };
           if (domainIsOK(ref.url)) {
             refs.push(ref);
